@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  user-service:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      SERVICE: user
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: secret
+      DB_NAME: social
+    depends_on:
+      - db
+
+  wall-service:
+    build: .
+    ports:
+      - "5001:5001"
+    environment:
+      SERVICE: wall
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: secret
+      DB_NAME: social
+    depends_on:
+      - db
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: social
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./user_init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./wall_init.sql:/docker-entrypoint-initdb.d/02-init.sql
+
+volumes:
+  postgres_data:
