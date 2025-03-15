@@ -1,16 +1,5 @@
 # Лабораторная работа 4: Гибридная СУБД (PostgreSQL + MongoDB)
 
-## Структура проекта
-app/
-├── docker-compose.yml
-├── Dockerfile
-├── user_service.py # PostgreSQL + JWT
-├── wall_service.py # PostgreSQL
-├── message_service.py # MongoDB
-├── init_postgres.sql
-├── init_mongo.js
-└── requirements.txt
-
 Задание четвертой лабораторной работы
 1. Создайте сервис на Python который реализует сервисы, спроектированные в первом задании (по проектированию). Должно быть реализовано как минимум два сервиса (управления пользователем, и хотя бы один «бизнес» сервис)
 2. Сервис должен поддерживать аутентификацию с использованием JWT-token
@@ -36,8 +25,8 @@ app/
 
 # Руководство по использованию сервиса
 
+
 ## 1. Установка зависимостей
-```powershell
 pip install -r requirements.txt
 
 ## 2. Запуск системы
