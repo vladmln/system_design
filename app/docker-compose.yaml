@@ -1,6 +1,62 @@
 version: '3.8'
 
 services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_INTERNAL://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  cqrs-consumer:
+    build: .
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092  # ← Используйте внутренний порт
+      DB_USER: user
+      DB_PASSWORD: secret
+      DB_HOST: postgres
+      DB_NAME: social
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command: ["python", "cqrs_consumer.py"]
+
+  kafka-init:
+    image: confluentinc/cp-kafka:7.6.1
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command: 
+      - /bin/sh
+      - -c
+      - |
+        kafka-topics --create --topic post_events \
+        --bootstrap-server kafka:9092 \
+        --replication-factor 1 \
+        --partitions 1
   redis:
     image: redis:7.0
     ports:
