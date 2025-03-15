@@ -1,30 +1,20 @@
-# Стадия сборки
 FROM python:3.10-slim as builder
 
 WORKDIR /app
 
-# Установка системных зависимостей
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
-    musl-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Установка зависимостей Python
 COPY requirements.txt .
-RUN pip install --user -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Стадия финального образа
 FROM python:3.10-slim
 
 WORKDIR /app
 
-# Копирование только необходимых файлов
-COPY --from=builder /root/.local /root/.local
+COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 COPY . .
 
-# Настройка переменных окружения
-ENV PATH=/root/.local/bin:$PATH
-
-# Запуск сервиса
-CMD ["sh", "-c", "if [ \"$SERVICE\" = \"user\" ]; then python user_service.py; else python wall_service.py; fi"]
+CMD ["sh", "-c", "if [ \"$SERVICE\" = \"user\" ]; then python user_service.py; elif [ \"$SERVICE\" = \"wall\" ]; then python wall_service.py; else python message_service.py; fi"]
