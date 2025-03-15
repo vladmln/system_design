@@ -2,6 +2,8 @@ FROM python:3.10-slim as builder
 
 WORKDIR /app
 
+RUN pip install --upgrade pip
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \

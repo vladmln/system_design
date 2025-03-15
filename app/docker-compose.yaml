@@ -1,6 +1,17 @@
 version: '3.8'
 
 services:
+  redis:
+    image: redis:7.0
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   user-service:
     build: .
     ports:
@@ -12,11 +23,15 @@ services:
       DB_HOST: postgres
       DB_NAME: social
       JWT_SECRET: super-secret-key
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       postgres:
         condition: service_healthy
       mongo:
         condition: service_started
+      redis:
+        condition: service_healthy
     restart: on-failure
 
   wall-service:
@@ -75,3 +90,4 @@ services:
 volumes:
   postgres_data:
   mongo_data:
+  redis_data:
